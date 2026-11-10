@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form class="filters" method="get" action="{{ url_for('transactions.index') }}">
+  <label>Month
+    <input type="month" name="month" value="{{ month }}">
+  </label>
+  <label>Category
+    <select name="category">
+      <option value="">All</option>
+      {% for c in categories %}
+        <option value="{{ c['id'] }}" {% if category_id == c['id'] %}selected{% endif %}>{{ c['name'] }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <button type="submit">Filter</button>
+  {% if month or category_id is not none %}
+    <a href="{{ url_for('transactions.index') }}">Clear</a>
+  {% endif %}
+</form>
+
+<p class="summary">
+  {{ transactions|length }} transaction{{ '' if transactions|length == 1 else 's' }}
+  &middot; Total <strong>{{ total_cents|money }}</strong>
+</p>
+
+{% if transactions %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Description</th>
+          <th>Category</th>
+          <th>Method</th>
+          <th class="num">Amount</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in transactions %}
+          <tr>
+            <td>{{ t['date'] }}</td>
+            <td>{{ t['description'] }}</td>
+            <td>{{ t['category'] }}</td>
+            <td>{{ t['payment_method'] }}</td>
+            <td class="num">{{ t['amount_cents']|money }}</td>
+            <td class="actions">
+              <a href="{{ url_for('transactions.edit', transaction_id=t['id']) }}">Edit</a>
+              <form method="post" action="{{ url_for('transactions.delete', transaction_id=t['id']) }}"
+                    onsubmit="return confirm('Delete this transaction?');">
+                <button type="submit" class="link danger">Delete</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% elif month or category_id is not none %}
+  <p class="empty">No transactions match these filters.</p>
+{% else %}
+  <p class="empty">No transactions yet. <a href="{{ url_for('transactions.add') }}">Add your first one.</a></p>
+{% endif %}
+{% endblock %}

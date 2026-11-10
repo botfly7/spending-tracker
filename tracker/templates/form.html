@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}{{ heading }} · Spending Tracker{% endblock %}
+
+{% block content %}
+<h1>{{ heading }}</h1>
+
+<form class="entry" method="post" novalidate>
+  <label>Date
+    <input type="date" name="date" value="{{ values.get('date', '') }}" required>
+  </label>
+
+  <label>Amount ($)
+    <input type="text" name="amount" inputmode="decimal" placeholder="0.00"
+           value="{{ values.get('amount', '') }}" required>
+  </label>
+
+  <label>Category
+    <select name="category_id" required>
+      <option value="">Choose a category</option>
+      {% for c in categories %}
+        <option value="{{ c['id'] }}"
+                {% if values.get('category_id')|string == c['id']|string %}selected{% endif %}>
+          {{ c['name'] }}
+        </option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <label>Description
+    <input type="text" name="description" maxlength="200" value="{{ values.get('description', '') }}">
+  </label>
+
+  <label>Payment method
+    <input type="text" name="payment_method" maxlength="200" placeholder="Debit card, cash, ..."
+           value="{{ values.get('payment_method', '') }}">
+  </label>
+
+  <div class="form-actions">
+    <button type="submit">Save</button>
+    <a href="{{ url_for('transactions.index') }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}
