@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard · Spending Tracker{% endblock %}
+
+{% block content %}
+<div class="month-nav">
+  {% if previous_month %}
+    <a href="{{ url_for('dashboard.index', month=previous_month) }}" aria-label="Previous month">&larr; Prev</a>
+  {% else %}
+    <span></span>
+  {% endif %}
+
+  <h1>{{ label }}</h1>
+
+  {% if next_month %}
+    <a href="{{ url_for('dashboard.index', month=next_month) }}" aria-label="Next month">Next &rarr;</a>
+  {% else %}
+    <span></span>
+  {% endif %}
+</div>
+
+{% if not is_current %}
+  <p class="subtle"><a href="{{ url_for('dashboard.index') }}">Jump to this month</a></p>
+{% endif %}
+
+{% if categories %}
+  <div class="stats">
+    <div class="stat">
+      <div class="label">Total spent</div>
+      <div class="value">{{ total_cents|money }}</div>
+    </div>
+    <div class="stat">
+      <div class="label">Transactions</div>
+      <div class="value">{{ transaction_count }}</div>
+    </div>
+    <div class="stat">
+      <div class="label">Top category</div>
+      <div class="value">{{ top_category['name'] }}</div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th class="num">Transactions</th>
+          <th class="num">Spent</th>
+          <th>Share</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in categories %}
+          <tr>
+            <td>
+              <a href="{{ url_for('transactions.index', month=month, category=c['id']) }}">{{ c['name'] }}</a>
+            </td>
+            <td class="num">{{ c['count'] }}</td>
+            <td class="num">{{ c['spent_cents']|money }}</td>
+            <td class="share">
+              <span class="bar" aria-hidden="true"><span style="width: {{ '%.1f'|format(c['share']) }}%"></span></span>
+              {{ '%.0f'|format(c['share']) }}%
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td>Total</td>
+          <td class="num">{{ transaction_count }}</td>
+          <td class="num">{{ total_cents|money }}</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+{% else %}
+  <p class="empty">
+    No spending recorded for {{ label }}.
+    <a href="{{ url_for('transactions.add') }}">Add a transaction.</a>
+  </p>
+{% endif %}
+{% endblock %}

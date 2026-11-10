@@ -4,7 +4,7 @@ import os
 
 from flask import Flask
 
-from . import db, routes
+from . import dashboard, db, routes
 
 
 def create_app(test_config=None):
@@ -22,4 +22,5 @@ def create_app(test_config=None):
 
     db.init_app(app)
     app.register_blueprint(routes.bp)
+    app.register_blueprint(dashboard.bp)
     return app

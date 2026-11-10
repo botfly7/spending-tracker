@@ -8,7 +8,14 @@
 </head>
 <body>
   <header class="site-header">
+    {% set endpoint = request.endpoint or '' %}
     <a class="brand" href="{{ url_for('transactions.index') }}">Spending Tracker</a>
+    <nav class="site-nav" aria-label="Main">
+      <a href="{{ url_for('transactions.index') }}"
+         {% if endpoint in ('transactions.index', 'transactions.edit') %}aria-current="page"{% endif %}>Transactions</a>
+      <a href="{{ url_for('dashboard.index') }}"
+         {% if endpoint.startswith('dashboard.') %}aria-current="page"{% endif %}>Dashboard</a>
+    </nav>
     <a class="button" href="{{ url_for('transactions.add') }}">+ Add transaction</a>
   </header>
   <main>

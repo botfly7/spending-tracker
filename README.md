@@ -2,7 +2,7 @@
 
 A web app for logging expenses, sorting them into categories, and seeing where the money goes. Built with Flask and SQLite.
 
-**Status:** Milestone 1 (transaction CRUD) is complete. See [ROADMAP.md](ROADMAP.md) for what's next.
+**Status:** Milestone 1 (transaction CRUD) is complete and Milestone 2 (dashboard) is in progress. See [ROADMAP.md](ROADMAP.md) for what's next.
 
 <!-- Add a screenshot here once the UI settles: ![Spending Tracker screenshot](docs/screenshot.png) -->
 
@@ -11,6 +11,7 @@ A web app for logging expenses, sorting them into categories, and seeing where t
 - Add, edit, and delete transactions
 - Ten default categories (rent, groceries, dining, transport, and so on)
 - Filter the list by month and category, with a running total
+- Dashboard with a monthly spending summary by category (SQL `GROUP BY`), month-by-month navigation, and links through to the matching transactions
 - Server-side validation for dates, amounts, and categories
 - Money stored as integer cents, so there are no floating-point rounding errors
 - Automated tests with pytest
@@ -47,6 +48,7 @@ spending-tracker/
 │   ├── db.py              # SQLite connection + schema setup
 │   ├── schema.sql         # table definitions
 │   ├── routes.py          # transaction views + input validation
+│   ├── dashboard.py       # monthly summary views
 │   ├── templates/         # Jinja templates
 │   └── static/style.css
 ├── tests/
