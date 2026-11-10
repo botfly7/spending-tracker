@@ -13,10 +13,10 @@ Each section below is a GitHub Milestone, and each checkbox is a GitHub Issue (u
 - [x] Tests for routes and input parsing
 
 ## Milestone 2: Dashboard
-- [ ] Monthly totals by category (SQL `GROUP BY`)
-- [ ] Budget table: a monthly target per category
-- [ ] Budget vs. actual view with over-budget highlighting
-- [ ] Charts with Chart.js (spending by category, spending over time)
+- [x] Monthly totals by category (SQL `GROUP BY`)
+- [x] Budget table: a monthly target per category
+- [x] Budget vs. actual view with over-budget highlighting
+- [x] Charts with Chart.js (spending by category, spending over time)
 
 ## Milestone 3: Accounts
 - [ ] Register, log in, and log out

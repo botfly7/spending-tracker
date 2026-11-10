@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard · Spending Tracker{% endblock %}
+
+{% block content %}
+<div class="month-nav">
+  {% if previous_month %}
+    <a href="{{ url_for('dashboard.index', month=previous_month) }}" aria-label="Previous month">&larr; Prev</a>
+  {% else %}
+    <span></span>
+  {% endif %}
+
+  <h1>{{ label }}</h1>
+
+  {% if next_month %}
+    <a href="{{ url_for('dashboard.index', month=next_month) }}" aria-label="Next month">Next &rarr;</a>
+  {% else %}
+    <span></span>
+  {% endif %}
+</div>
+
+{% if not is_current %}
+  <p class="subtle"><a href="{{ url_for('dashboard.index') }}">Jump to this month</a></p>
+{% endif %}
+
+{% if categories %}
+  <div class="stats">
+    <div class="stat">
+      <div class="label">Total spent</div>
+      <div class="value">{{ total_cents|money }}</div>
+    </div>
+    <div class="stat">
+      <div class="label">Transactions</div>
+      <div class="value">{{ transaction_count }}</div>
+    </div>
+    <div class="stat">
+      <div class="label">Top category</div>
+      <div class="value">{{ top_category['name'] }}</div>
+    </div>
+  </div>
+{% endif %}
+
+{% if chart_data %}
+  {# The cards start hidden; charts.js reveals them once Chart.js has loaded, so
+     nothing empty shows up offline. The tables below carry the same figures. #}
+  <div class="charts">
+    {% if chart_data['categories']['labels'] %}
+      <figure class="chart-card" hidden>
+        <figcaption>Spending by category</figcaption>
+        <div class="chart-box">
+          <canvas id="category-chart" role="img"
+                  aria-label="Bar chart of spending by category for {{ label }}. The table below lists the same figures."></canvas>
+        </div>
+      </figure>
+    {% endif %}
+    <figure class="chart-card" hidden>
+      <figcaption>Spending by month <span>&middot; {{ label }} highlighted</span></figcaption>
+      <div class="chart-box">
+        <canvas id="trend-chart" role="img"
+                aria-label="Column chart of total spending for the last six months, ending {{ label }}."></canvas>
+      </div>
+    </figure>
+  </div>
+  <script type="application/json" id="chart-data">{{ chart_data|tojson }}</script>
+{% endif %}
+
+{% if categories %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th class="num">Transactions</th>
+          <th class="num">Spent</th>
+          <th>Share</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in categories %}
+          <tr>
+            <td>
+              <a href="{{ url_for('transactions.index', month=month, category=c['id']) }}">{{ c['name'] }}</a>
+            </td>
+            <td class="num">{{ c['count'] }}</td>
+            <td class="num">{{ c['spent_cents']|money }}</td>
+            <td class="share">
+              <span class="bar" aria-hidden="true"><span style="width: {{ '%.1f'|format(c['share']) }}%"></span></span>
+              {{ '%.0f'|format(c['share']) }}%
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td>Total</td>
+          <td class="num">{{ transaction_count }}</td>
+          <td class="num">{{ total_cents|money }}</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+{% else %}
+  <p class="empty">
+    No spending recorded for {{ label }}.
+    <a href="{{ url_for('transactions.add') }}">Add a transaction.</a>
+  </p>
+{% endif %}
+
+<section>
+  <div class="section-head">
+    <h2>Budget vs. actual</h2>
+    <a href="{{ url_for('budgets.index') }}">{{ 'Edit budgets' if budgets else 'Set budgets' }}</a>
+  </div>
+
+  {% if budgets %}
+    <p class="section-note">
+      Spent <strong>{{ budget_summary['spent_cents']|money }}</strong> of <strong>{{ budget_summary['total_cents']|money }}</strong> budgeted ({{ budget_summary['left_cents']|money }} {{ 'over' if budget_summary['is_over'] else 'left' }}).
+      {% if budget_summary['unbudgeted_cents'] > 0 %}
+        Another {{ budget_summary['unbudgeted_cents']|money }} went to categories without a budget.
+      {% endif %}
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th class="num">Budget</th>
+            <th class="num">Spent</th>
+            <th class="num">Left</th>
+            <th>Used</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in budgets %}
+            <tr>
+              <td>
+                <a href="{{ url_for('transactions.index', month=month, category=b['id']) }}">{{ b['name'] }}</a>
+              </td>
+              <td class="num">{{ b['budget_cents']|money }}</td>
+              <td class="num">{{ b['spent_cents']|money }}</td>
+              <td class="num status-{{ b['status'] }}">{{ b['left_cents']|money }} {{ 'over' if b['status'] == 'over' else 'left' }}</td>
+              <td>
+                <span class="bar {{ b['status'] }}" aria-hidden="true"><span style="width: {{ '%.1f'|format([b['used_percent'], 100]|min) }}%"></span></span>
+                {{ '%.0f'|format(b['used_percent']) }}%
+                {% if b['status'] == 'near' %}
+                  <span class="tag near">Near limit</span>
+                {% elif b['status'] == 'over' %}
+                  <span class="tag over">Over budget</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="empty">
+      No budgets set yet.
+      <a href="{{ url_for('budgets.index') }}">Set a monthly budget</a> for any category to track it here.
+    </p>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+  {% if chart_data %}
+    {# Chart.js 4 from the jsDelivr CDN; the page still works without it. #}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4" defer></script>
+    <script src="{{ url_for('static', filename='charts.js') }}" defer></script>
+  {% endif %}
+{% endblock %}
