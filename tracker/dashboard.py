@@ -12,6 +12,9 @@ bp = Blueprint("dashboard", __name__)
 # Keeps month navigation inside a range `date` and the templates handle comfortably.
 MIN_YEAR, MAX_YEAR = 2000, 2100
 
+# How many months the spending trend chart covers, ending at the selected month.
+MONTHS_SHOWN = 6
+
 # A category is flagged as "near its limit" once it has used this much of its budget.
 NEAR_LIMIT_PERCENT = 80
 
@@ -38,6 +41,16 @@ def shift_month(month, delta):
 def month_label(month):
     """'2026-11' -> 'November 2026'."""
     return date(int(month[:4]), int(month[5:]), 1).strftime("%B %Y")
+
+
+def short_month_label(month):
+    """'2026-11' -> 'Nov 2026' (used on chart axes)."""
+    return date(int(month[:4]), int(month[5:]), 1).strftime("%b %Y")
+
+
+def trend_months(month, count=MONTHS_SHOWN):
+    """The `count` months ending at `month`, oldest first."""
+    return [shift_month(month, -offset) for offset in range(count - 1, -1, -1)]
 
 
 def budget_status(spent_cents, budget_cents):
@@ -123,6 +136,35 @@ def index():
             "unbudgeted_cents": total_cents - budgeted_spent,
         }
 
+    # Chart data: the same category totals as the table, plus a trend ending at the
+    # selected month. Months with no spending count as zero.
+    months = trend_months(month)
+    trend_rows = db.execute(
+        """
+        SELECT substr(date, 1, 7) AS month, SUM(amount_cents) AS spent_cents
+        FROM transactions
+        WHERE date >= ? AND date < ?
+        GROUP BY substr(date, 1, 7)
+        """,
+        (f"{months[0]}-01", f"{next_month}-01"),
+    ).fetchall()
+    spent_by_month = {row["month"]: row["spent_cents"] for row in trend_rows}
+    month_cents = [spent_by_month.get(m, 0) for m in months]
+
+    chart_data = None
+    if any(month_cents):
+        chart_data = {
+            "categories": {
+                "labels": [c["name"] for c in categories],
+                "cents": [c["spent_cents"] for c in categories],
+            },
+            "months": {
+                "labels": [short_month_label(m) for m in months],
+                "cents": month_cents,
+                "selected": len(months) - 1,
+            },
+        }
+
     return render_template(
         "dashboard.html",
         month=month,
@@ -136,4 +178,5 @@ def index():
         top_category=categories[0] if categories else None,
         budgets=budgets,
         budget_summary=budget_summary,
+        chart_data=chart_data,
     )

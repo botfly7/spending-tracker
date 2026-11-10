@@ -38,7 +38,33 @@
       <div class="value">{{ top_category['name'] }}</div>
     </div>
   </div>
+{% endif %}
 
+{% if chart_data %}
+  {# The cards start hidden; charts.js reveals them once Chart.js has loaded, so
+     nothing empty shows up offline. The tables below carry the same figures. #}
+  <div class="charts">
+    {% if chart_data['categories']['labels'] %}
+      <figure class="chart-card" hidden>
+        <figcaption>Spending by category</figcaption>
+        <div class="chart-box">
+          <canvas id="category-chart" role="img"
+                  aria-label="Bar chart of spending by category for {{ label }}. The table below lists the same figures."></canvas>
+        </div>
+      </figure>
+    {% endif %}
+    <figure class="chart-card" hidden>
+      <figcaption>Spending by month <span>&middot; {{ label }} highlighted</span></figcaption>
+      <div class="chart-box">
+        <canvas id="trend-chart" role="img"
+                aria-label="Column chart of total spending for the last six months, ending {{ label }}."></canvas>
+      </div>
+    </figure>
+  </div>
+  <script type="application/json" id="chart-data">{{ chart_data|tojson }}</script>
+{% endif %}
+
+{% if categories %}
   <div class="table-wrap">
     <table>
       <thead>
@@ -136,4 +162,12 @@
     </p>
   {% endif %}
 </section>
+{% endblock %}
+
+{% block scripts %}
+  {% if chart_data %}
+    {# Chart.js 4 from the jsDelivr CDN; the page still works without it. #}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4" defer></script>
+    <script src="{{ url_for('static', filename='charts.js') }}" defer></script>
+  {% endif %}
 {% endblock %}

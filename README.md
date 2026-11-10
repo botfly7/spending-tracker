@@ -2,7 +2,7 @@
 
 A web app for logging expenses, sorting them into categories, and seeing where the money goes. Built with Flask and SQLite.
 
-**Status:** Milestone 1 (transaction CRUD) is complete and Milestone 2 (dashboard) is in progress. See [ROADMAP.md](ROADMAP.md) for what's next.
+**Status:** Milestone 1 (transaction CRUD) is complete and Milestone 2 (dashboard) is complete. See [ROADMAP.md](ROADMAP.md) for what's next.
 
 <!-- Add a screenshot here once the UI settles: ![Spending Tracker screenshot](docs/screenshot.png) -->
 
@@ -13,6 +13,7 @@ A web app for logging expenses, sorting them into categories, and seeing where t
 - Filter the list by month and category, with a running total
 - Dashboard with a monthly spending summary by category (SQL `GROUP BY`), month-by-month navigation, and links through to the matching transactions
 - Monthly budgets per category, with a budget vs. actual view that flags categories that are near (80%+) or over their limit
+- Charts (Chart.js) for spending by category and the last six months, with light and dark themes
 - Server-side validation for dates, amounts, and categories
 - Money stored as integer cents, so there are no floating-point rounding errors
 - Automated tests with pytest
@@ -52,7 +53,7 @@ spending-tracker/
 │   ├── dashboard.py       # monthly summary + budget vs. actual
 │   ├── budgets.py         # budget targets form
 │   ├── templates/         # Jinja templates
-│   └── static/style.css
+│   └── static/            # style.css, charts.js (Chart.js setup)
 ├── tests/
 ├── requirements.txt
 ├── requirements-dev.txt
@@ -69,4 +70,5 @@ spending-tracker/
 
 - No user accounts yet, so the app is single-user. Milestone 3 adds login and per-user data.
 - No CSRF protection yet. It lands with accounts in Milestone 3, so don't deploy publicly before then.
+- The charts load Chart.js from the jsDelivr CDN, so they need an internet connection (the tables show the same numbers without it). Before deploying, pin an exact version with a Subresource Integrity hash, or serve the file yourself.
 - Set a real `SECRET_KEY` environment variable before deploying. The default is for local development only.
