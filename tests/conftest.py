@@ -47,3 +47,27 @@ def add_transaction(client):
         return response
 
     return _add
+
+
+@pytest.fixture
+def budget_form(category_ids):
+    """Build the budgets form data: budget_form(Rent="1200", Dining="80")."""
+
+    def _build(**amounts):
+        data = {f"budget_{category_id}": "" for category_id in category_ids.values()}
+        for name, amount in amounts.items():
+            data[f"budget_{category_ids[name]}"] = amount
+        return data
+
+    return _build
+
+
+@pytest.fixture
+def set_budgets(client, budget_form):
+    """A helper that saves budgets through the real form: set_budgets(Dining="100")."""
+
+    def _set(**amounts):
+        response = client.post("/budgets", data=budget_form(**amounts))
+        assert response.status_code == 302  # a redirect means they were saved
+
+    return _set

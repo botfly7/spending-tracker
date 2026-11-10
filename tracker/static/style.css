@@ -7,6 +7,7 @@
   --accent: #1f6feb;
   --accent-text: #ffffff;
   --danger: #c62828;
+  --warn: #9a5b00;
   --ok-bg: #e7f5ec;
   --ok-text: #14532d;
   --error-bg: #fdeaea;
@@ -23,6 +24,7 @@
     --accent: #4c8dff;
     --accent-text: #0b1220;
     --danger: #ff7b72;
+    --warn: #f0b429;
     --ok-bg: #12301f;
     --ok-text: #b7ebc6;
     --error-bg: #3a1717;
@@ -278,3 +280,60 @@ tfoot td {
   height: 100%;
   background: var(--accent);
 }
+
+.bar.near > span { background: var(--warn); }
+.bar.over > span { background: var(--danger); }
+
+/* ---------- budgets ---------- */
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 2rem 0 0.5rem;
+}
+
+.section-head h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.section-note {
+  margin: 0 0 0.75rem;
+  color: var(--muted);
+}
+
+.section-note strong { color: var(--text); }
+
+.status-over {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.tag {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0 0.5rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.tag.near { color: var(--warn); }
+.tag.over { color: var(--danger); }
+
+.budget-form .table-wrap { max-width: 440px; }
+
+.budget-form label {
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.budget-form input {
+  width: 9rem;
+  text-align: right;
+}
+
+.budget-form .form-actions { margin-top: 1rem; }

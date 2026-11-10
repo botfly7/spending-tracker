@@ -12,6 +12,9 @@ bp = Blueprint("dashboard", __name__)
 # Keeps month navigation inside a range `date` and the templates handle comfortably.
 MIN_YEAR, MAX_YEAR = 2000, 2100
 
+# A category is flagged as "near its limit" once it has used this much of its budget.
+NEAR_LIMIT_PERCENT = 80
+
 
 def current_month():
     return date.today().strftime("%Y-%m")
@@ -37,6 +40,15 @@ def month_label(month):
     return date(int(month[:4]), int(month[5:]), 1).strftime("%B %Y")
 
 
+def budget_status(spent_cents, budget_cents):
+    """'over' once spending passes the budget, 'near' from 80% of it, otherwise 'ok'."""
+    if spent_cents > budget_cents:
+        return "over"
+    if spent_cents * 100 >= budget_cents * NEAR_LIMIT_PERCENT:
+        return "near"
+    return "ok"
+
+
 @bp.route("/dashboard")
 def index():
     month = parse_month(request.args.get("month")) or current_month()
@@ -45,7 +57,8 @@ def index():
 
     # Dates are stored as ISO text, so a half-open range selects exactly one month
     # and can use the index on transactions.date.
-    rows = get_db().execute(
+    db = get_db()
+    rows = db.execute(
         """
         SELECT c.id,
                c.name,
@@ -72,6 +85,44 @@ def index():
         for row in rows
     ]
 
+    # Budget vs. actual: every category that has a budget is listed, even if nothing
+    # was spent in it this month. Spending comes from the totals computed above.
+    budget_rows = db.execute(
+        """
+        SELECT c.id, c.name, b.amount_cents AS budget_cents
+        FROM budgets b
+        JOIN categories c ON c.id = b.category_id
+        ORDER BY c.id
+        """
+    ).fetchall()
+    spent_by_category = {c["id"]: c["spent_cents"] for c in categories}
+    budgets = []
+    for row in budget_rows:
+        spent_cents = spent_by_category.get(row["id"], 0)
+        budgets.append(
+            {
+                "id": row["id"],
+                "name": row["name"],
+                "budget_cents": row["budget_cents"],
+                "spent_cents": spent_cents,
+                "left_cents": abs(row["budget_cents"] - spent_cents),
+                "status": budget_status(spent_cents, row["budget_cents"]),
+                "used_percent": spent_cents / row["budget_cents"] * 100,
+            }
+        )
+
+    budget_summary = None
+    if budgets:
+        budget_total = sum(b["budget_cents"] for b in budgets)
+        budgeted_spent = sum(b["spent_cents"] for b in budgets)
+        budget_summary = {
+            "total_cents": budget_total,
+            "spent_cents": budgeted_spent,
+            "left_cents": abs(budget_total - budgeted_spent),
+            "is_over": budgeted_spent > budget_total,
+            "unbudgeted_cents": total_cents - budgeted_spent,
+        }
+
     return render_template(
         "dashboard.html",
         month=month,
@@ -83,4 +134,6 @@ def index():
         total_cents=total_cents,
         transaction_count=sum(c["count"] for c in categories),
         top_category=categories[0] if categories else None,
+        budgets=budgets,
+        budget_summary=budget_summary,
     )

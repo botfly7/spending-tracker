@@ -80,4 +80,60 @@
     <a href="{{ url_for('transactions.add') }}">Add a transaction.</a>
   </p>
 {% endif %}
+
+<section>
+  <div class="section-head">
+    <h2>Budget vs. actual</h2>
+    <a href="{{ url_for('budgets.index') }}">{{ 'Edit budgets' if budgets else 'Set budgets' }}</a>
+  </div>
+
+  {% if budgets %}
+    <p class="section-note">
+      Spent <strong>{{ budget_summary['spent_cents']|money }}</strong> of <strong>{{ budget_summary['total_cents']|money }}</strong> budgeted ({{ budget_summary['left_cents']|money }} {{ 'over' if budget_summary['is_over'] else 'left' }}).
+      {% if budget_summary['unbudgeted_cents'] > 0 %}
+        Another {{ budget_summary['unbudgeted_cents']|money }} went to categories without a budget.
+      {% endif %}
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th class="num">Budget</th>
+            <th class="num">Spent</th>
+            <th class="num">Left</th>
+            <th>Used</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in budgets %}
+            <tr>
+              <td>
+                <a href="{{ url_for('transactions.index', month=month, category=b['id']) }}">{{ b['name'] }}</a>
+              </td>
+              <td class="num">{{ b['budget_cents']|money }}</td>
+              <td class="num">{{ b['spent_cents']|money }}</td>
+              <td class="num status-{{ b['status'] }}">{{ b['left_cents']|money }} {{ 'over' if b['status'] == 'over' else 'left' }}</td>
+              <td>
+                <span class="bar {{ b['status'] }}" aria-hidden="true"><span style="width: {{ '%.1f'|format([b['used_percent'], 100]|min) }}%"></span></span>
+                {{ '%.0f'|format(b['used_percent']) }}%
+                {% if b['status'] == 'near' %}
+                  <span class="tag near">Near limit</span>
+                {% elif b['status'] == 'over' %}
+                  <span class="tag over">Over budget</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="empty">
+      No budgets set yet.
+      <a href="{{ url_for('budgets.index') }}">Set a monthly budget</a> for any category to track it here.
+    </p>
+  {% endif %}
+</section>
 {% endblock %}

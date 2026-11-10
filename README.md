@@ -12,6 +12,7 @@ A web app for logging expenses, sorting them into categories, and seeing where t
 - Ten default categories (rent, groceries, dining, transport, and so on)
 - Filter the list by month and category, with a running total
 - Dashboard with a monthly spending summary by category (SQL `GROUP BY`), month-by-month navigation, and links through to the matching transactions
+- Monthly budgets per category, with a budget vs. actual view that flags categories that are near (80%+) or over their limit
 - Server-side validation for dates, amounts, and categories
 - Money stored as integer cents, so there are no floating-point rounding errors
 - Automated tests with pytest
@@ -48,7 +49,8 @@ spending-tracker/
 │   ├── db.py              # SQLite connection + schema setup
 │   ├── schema.sql         # table definitions
 │   ├── routes.py          # transaction views + input validation
-│   ├── dashboard.py       # monthly summary views
+│   ├── dashboard.py       # monthly summary + budget vs. actual
+│   ├── budgets.py         # budget targets form
 │   ├── templates/         # Jinja templates
 │   └── static/style.css
 ├── tests/

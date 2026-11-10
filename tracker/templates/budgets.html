@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Budgets · Spending Tracker{% endblock %}
+
+{% block content %}
+<h1>Monthly budgets</h1>
+<p class="section-note">
+  Set a spending target for any category. Targets apply to every month, and you can
+  leave a field blank for no budget.
+</p>
+
+<form class="budget-form" method="post" novalidate>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th class="num">Monthly budget ($)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in categories %}
+          <tr>
+            <td><label for="budget-{{ c['id'] }}">{{ c['name'] }}</label></td>
+            <td class="num">
+              <input id="budget-{{ c['id'] }}" type="text" name="budget_{{ c['id'] }}"
+                     inputmode="decimal" placeholder="No budget"
+                     value="{{ values.get(c['id'], '') }}">
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit">Save budgets</button>
+    <a href="{{ url_for('dashboard.index') }}">Back to dashboard</a>
+  </div>
+</form>
+{% endblock %}
